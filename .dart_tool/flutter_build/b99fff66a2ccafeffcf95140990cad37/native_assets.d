@@ -1,0 +1,1 @@
+ E:\\prPersonal\\aplicatiepontare\\pontare\\.dart_tool\\flutter_build\\b99fff66a2ccafeffcf95140990cad37\\native_assets.yaml: 

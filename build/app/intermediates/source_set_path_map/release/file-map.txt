@@ -1,0 +1,15 @@
+com.example.pontare.app-core-1.6.0-0 C:\Users\mihai\.gradle\caches\transforms-3\284a410c767ad6c7a2b0ffc8d8d85981\transformed\core-1.6.0\res
+com.example.pontare.app-jetified-window-java-1.0.0-beta04-1 C:\Users\mihai\.gradle\caches\transforms-3\2a215381204751055df81b6269e717b7\transformed\jetified-window-java-1.0.0-beta04\res
+com.example.pontare.app-jetified-annotation-experimental-1.1.0-2 C:\Users\mihai\.gradle\caches\transforms-3\3d2f03fc996c2e0aa3dee5cfa3002cd1\transformed\jetified-annotation-experimental-1.1.0\res
+com.example.pontare.app-jetified-datastore-preferences-1.0.0-3 C:\Users\mihai\.gradle\caches\transforms-3\e75666861c19ddc5e1b02c228a732c3d\transformed\jetified-datastore-preferences-1.0.0\res
+com.example.pontare.app-jetified-datastore-1.0.0-4 C:\Users\mihai\.gradle\caches\transforms-3\ea5100a471779cdfb4c61328eadd49f2\transformed\jetified-datastore-1.0.0\res
+com.example.pontare.app-jetified-window-1.0.0-beta04-5 C:\Users\mihai\.gradle\caches\transforms-3\f302e75fb7efd781bcf1a29281c188da\transformed\jetified-window-1.0.0-beta04\res
+com.example.pontare.app-main-6 E:\prPersonal\aplicatiepontare\pontare\android\app\src\main\res
+com.example.pontare.app-release-7 E:\prPersonal\aplicatiepontare\pontare\android\app\src\release\res
+com.example.pontare.app-pngs-8 E:\prPersonal\aplicatiepontare\pontare\build\app\generated\res\pngs\release
+com.example.pontare.app-resValues-9 E:\prPersonal\aplicatiepontare\pontare\build\app\generated\res\resValues\release
+com.example.pontare.app-rs-10 E:\prPersonal\aplicatiepontare\pontare\build\app\generated\res\rs\release
+com.example.pontare.app-mergeReleaseResources-11 E:\prPersonal\aplicatiepontare\pontare\build\app\intermediates\incremental\release\mergeReleaseResources\merged.dir
+com.example.pontare.app-mergeReleaseResources-12 E:\prPersonal\aplicatiepontare\pontare\build\app\intermediates\incremental\release\mergeReleaseResources\stripped.dir
+com.example.pontare.app-merged_res-13 E:\prPersonal\aplicatiepontare\pontare\build\app\intermediates\merged_res\release
+com.example.pontare.app-packaged_res-14 E:\prPersonal\aplicatiepontare\pontare\build\shared_preferences_android\intermediates\packaged_res\release
