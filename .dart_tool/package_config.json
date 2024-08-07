@@ -290,18 +290,6 @@
       "languageVersion": "3.3"
     },
     {
-      "name": "wear",
-      "rootUri": "file:///C:/Users/mihai/AppData/Local/Pub/Cache/hosted/pub.dev/wear-1.1.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
-      "name": "wearable_rotary",
-      "rootUri": "file:///C:/Users/mihai/AppData/Local/Pub/Cache/hosted/pub.dev/wearable_rotary-2.0.2",
-      "packageUri": "lib/",
-      "languageVersion": "2.18"
-    },
-    {
       "name": "web",
       "rootUri": "file:///C:/Users/mihai/AppData/Local/Pub/Cache/hosted/pub.dev/web-1.0.0",
       "packageUri": "lib/",
@@ -320,7 +308,7 @@
       "languageVersion": "3.4"
     }
   ],
-  "generated": "2024-08-07T06:30:41.781798Z",
+  "generated": "2024-08-07T12:45:46.344201Z",
   "generator": "pub",
   "generatorVersion": "3.4.3",
   "flutterRoot": "file:///C:/dev/flutter",

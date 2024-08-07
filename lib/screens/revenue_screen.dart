@@ -23,7 +23,7 @@ class _RevenueScreenState extends State<RevenueScreen> {
   List<Revenue> paginatedRevenues = [];
 
   int currentPage = 1;
-  final int itemsPerPage = 10;
+  final int itemsPerPage = 4;
 
   @override
   void initState() {
@@ -120,21 +120,38 @@ class _RevenueScreenState extends State<RevenueScreen> {
                   });
                 },
               ),
-              DropdownButton<Category>(
-                value: selectedCategory,
-                hint: Text("Select Category"),
-                items: categories.map((Category category) {
-                  return DropdownMenuItem<Category>(
-                    value: category,
-                    child: Text(category.categoryName),
-                  );
-                }).toList(),
-                onChanged: (Category? newValue) {
-                  setState(() {
-                    selectedCategory = newValue;
-                  });
-                },
-              ),
+              categories.isNotEmpty
+                  ? DropdownButton<Category>(
+                      value: selectedCategory,
+                      hint: Text("Select Category"),
+                      items: categories.map((Category category) {
+                        return DropdownMenuItem<Category>(
+                          value: category,
+                          child: Text(category.categoryName),
+                        );
+                      }).toList()
+                        ..add(
+                          DropdownMenuItem<Category>(
+                            child: Text("Create New Category"),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _showCreateCategoryDialog();
+                            },
+                          ),
+                        ),
+                      onChanged: (Category? newValue) {
+                        setState(() {
+                          selectedCategory = newValue;
+                        });
+                      },
+                    )
+                  : TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _showCreateCategoryDialog();
+                      },
+                      child: Text("Create New Category"),
+                    ),
             ],
           ),
           actions: [
@@ -186,6 +203,177 @@ class _RevenueScreenState extends State<RevenueScreen> {
     );
   }
 
+  void _showUpdateCategoryDialog(Revenue revenue) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Update Category"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButton<Category>(
+                value: selectedCategory,
+                hint: Text("Select Category"),
+                items: categories.map((Category category) {
+                  return DropdownMenuItem<Category>(
+                    value: category,
+                    child: Text(category.categoryName),
+                  );
+                }).toList()
+                  ..add(
+                    DropdownMenuItem<Category>(
+                      child: Text("Create New Category"),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showCreateCategoryDialog();
+                      },
+                    ),
+                  ),
+                onChanged: (Category? newValue) {
+                  setState(() {
+                    selectedCategory = newValue;
+                  });
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (selectedCategory == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Please select or create a category")),
+                  );
+                  return;
+                }
+
+                final success = await revenueService.updateRevenueCategory(
+                  revenue.id,
+                  selectedCategory!.categoryName,
+                );
+                Navigator.pop(context);
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Category updated successfully")),
+                  );
+                  _loadRevenues(); // Reload revenues after update
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Failed to update category")),
+                  );
+                }
+              },
+              child: Text("Update"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showCreateCategoryDialog() {
+    final TextEditingController categoryNameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Create New Category"),
+          content: TextField(
+            controller: categoryNameController,
+            decoration: InputDecoration(labelText: "Category Name"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                final categoryName = categoryNameController.text;
+                if (categoryName.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Category name cannot be empty")),
+                  );
+                  return;
+                }
+
+                final success = await categoryService.createCategory(categoryName);
+                Navigator.pop(context);
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Category created successfully")),
+                  );
+                  // Reload categories and show update category dialog
+                  _loadCategories();
+                  // Optional: Open the update category dialog if a new category is created
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Failed to create category")),
+                  );
+                }
+              },
+              child: Text("Create"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmationDialog(Revenue revenue) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Delete Revenue"),
+          content: Text("Are you sure you want to delete this revenue?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _deleteRevenue(revenue.id);
+              },
+              child: Text("Delete"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteRevenue(int id) async {
+    final success = await revenueService.deleteRevenue(id);
+    if (success) {
+      setState(() {
+        allRevenues.removeWhere((revenue) => revenue.id == id);
+        _updatePaginatedRevenues(); // Update paginated list
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Revenue deleted successfully")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to delete revenue")),
+      );
+    }
+  }
+
   void _goToPreviousPage() {
     if (currentPage > 1) {
       setState(() {
@@ -227,6 +415,19 @@ class _RevenueScreenState extends State<RevenueScreen> {
                       'Currency: ${revenue.currency}',
                     ),
                     contentPadding: EdgeInsets.all(16.0),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () => _showUpdateCategoryDialog(revenue),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () => _showDeleteConfirmationDialog(revenue),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

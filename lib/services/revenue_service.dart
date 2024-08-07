@@ -28,6 +28,23 @@ class RevenueService {
       throw Exception('Failed to load revenues');
     }
   }
+  
+  Future<bool> deleteRevenue(int id) async {
+    final token = await _getToken();
+
+    if (token == null) {
+      throw Exception('No token found');
+    }
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/revenues/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    return response.statusCode == 204; // Assuming 204 No Content for successful deletion
+  }
 
   Future<bool> createRevenue(String hoursWorked, String currDay, String currency, int categoryId) async {
     final token = await _getToken();
@@ -51,5 +68,20 @@ class RevenueService {
     );
 
     return response.statusCode == 200;
+  }
+  Future<bool> updateRevenueCategory(int revenueId, String categoryName) async {
+    final token = await _getToken();
+    final response = await http.put(
+      Uri.parse('$baseUrl/revenues/$revenueId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode({
+        'newRevenueName': categoryName,
+      }),
+    );
+
+    return response.statusCode == 200; // Assuming 200 is returned for successful update
   }
 }

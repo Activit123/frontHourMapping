@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pontare/services/category_service.dart';
 import 'package:pontare/models/category.dart';
+import 'package:pontare/models/rate.dart';
+import 'package:pontare/models/rate_dto.dart';
 
 class CategoryScreen extends StatefulWidget {
   @override
@@ -10,9 +12,15 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   final CategoryService categoryService = CategoryService();
   final TextEditingController categoryController = TextEditingController();
-  List<Category> categories = [];
+  final TextEditingController rateController = TextEditingController();
+  List<Category> allCategories = [];
+  List<Category> paginatedCategories = [];
+  Map<int, Rate?> categoryRates = {}; // Store rates for categories
   bool isLoading = true;
   String? errorMessage;
+
+  int currentPage = 1;
+  final int itemsPerPage = 10;
 
   @override
   void initState() {
@@ -24,15 +32,35 @@ class _CategoryScreenState extends State<CategoryScreen> {
     try {
       final loadedCategories = await categoryService.getCategories();
       setState(() {
-        categories = loadedCategories;
+        allCategories = loadedCategories;
         isLoading = false;
+        _updatePaginatedCategories();
       });
+
+      // Fetch rates for each category
+      for (var category in loadedCategories) {
+        final rate = await categoryService.getRateForCategory(category.id);
+        setState(() {
+          categoryRates[category.id] = rate;
+        });
+      }
     } catch (e) {
       setState(() {
         errorMessage = e.toString();
         isLoading = false;
       });
     }
+  }
+
+  void _updatePaginatedCategories() {
+    setState(() {
+      final startIndex = (currentPage - 1) * itemsPerPage;
+      final endIndex = startIndex + itemsPerPage;
+      paginatedCategories = allCategories.sublist(
+        startIndex,
+        endIndex > allCategories.length ? allCategories.length : endIndex,
+      );
+    });
   }
 
   void _showCreateCategoryDialog() {
@@ -118,6 +146,58 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
+  void _showSetRateDialog(Category category) {
+    rateController.clear();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Set Rate for ${category.categoryName}"),
+          content: TextField(
+            controller: rateController,
+            decoration: InputDecoration(labelText: "Rate"),
+            keyboardType: TextInputType.number,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                final rate = double.tryParse(rateController.text);
+                if (rate != null) {
+                  final rateDTO = RateDTO(rate: rate, categoryId: category.id);
+                  final success = await categoryService.setRateForCategory(rateDTO);
+                  Navigator.pop(context);
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Rate set successfully")),
+                    );
+                    setState(() {
+                      categoryRates[category.id] = Rate(id: 0, rate: rate); // Update local state
+                    });
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Failed to set rate")),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Invalid rate value")),
+                  );
+                }
+              },
+              child: Text("Set Rate"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showDeleteConfirmationDialog(Category category) {
     showDialog(
       context: context,
@@ -146,21 +226,38 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }
 
   void _deleteCategory(int id) async {
-    print("Attempting to delete category with id: $id");
     final success = await categoryService.deleteCategory(id);
     if (success) {
       setState(() {
-        categories.removeWhere((category) => category.id == id);
+        allCategories.removeWhere((category) => category.id == id);
+        categoryRates.remove(id); // Remove rate from local state
+        _updatePaginatedCategories();
       });
-      print("Category deleted successfully");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Category deleted successfully")),
       );
     } else {
-      print("Failed to delete category");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to delete category")),
       );
+    }
+  }
+
+  void _goToPreviousPage() {
+    if (currentPage > 1) {
+      setState(() {
+        currentPage--;
+        _updatePaginatedCategories();
+      });
+    }
+  }
+
+  void _goToNextPage() {
+    if ((currentPage * itemsPerPage) < allCategories.length) {
+      setState(() {
+        currentPage++;
+        _updatePaginatedCategories();
+      });
     }
   }
 
@@ -170,31 +267,72 @@ class _CategoryScreenState extends State<CategoryScreen> {
       appBar: AppBar(
         title: Text("Categories"),
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : errorMessage != null
-              ? Center(child: Text(errorMessage!))
-              : ListView.builder(
-                  itemCount: categories.length,
-                  itemBuilder: (context, index) {
-                    final category = categories[index];
-                    return Card(
-                      margin: EdgeInsets.all(8.0),
-                      child: ListTile(
-                        title: Text(category.categoryName),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () => _showDeleteConfirmationDialog(category),
-                        ),
-                        onTap: () => _showEditCategoryDialog(category),
+      body: Column(
+        children: [
+          Expanded(
+            child: isLoading
+                ? Center(child: CircularProgressIndicator())
+                : errorMessage != null
+                    ? Center(child: Text(errorMessage!))
+                    : ListView.builder(
+                        itemCount: paginatedCategories.length,
+                        itemBuilder: (context, index) {
+                          final category = paginatedCategories[index];
+                          final rate = categoryRates[category.id]?.rate;
+
+                          return Card(
+                            margin: EdgeInsets.all(8.0),
+                            child: ListTile(
+                              title: Text(category.categoryName),
+                              subtitle: rate != null
+                                  ? Text('Rate: $rate')
+                                  : Text('Rate: Not set'),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.edit),
+                                    onPressed: () => _showEditCategoryDialog(category),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete),
+                                    onPressed: () => _showDeleteConfirmationDialog(category),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.attach_money),
+                                    onPressed: () => _showSetRateDialog(category),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: _goToPreviousPage,
+                  child: Text("Previous"),
                 ),
+                Text("Page $currentPage"),
+                TextButton(
+                  onPressed: _goToNextPage,
+                  child: Text("Next"),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateCategoryDialog,
         child: Icon(Icons.add),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
