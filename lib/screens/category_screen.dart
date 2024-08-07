@@ -118,6 +118,52 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
+  void _showDeleteConfirmationDialog(Category category) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Delete Category"),
+          content: Text("Are you sure you want to delete this category?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _deleteCategory(category.id);
+              },
+              child: Text("Delete"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteCategory(int id) async {
+    print("Attempting to delete category with id: $id");
+    final success = await categoryService.deleteCategory(id);
+    if (success) {
+      setState(() {
+        categories.removeWhere((category) => category.id == id);
+      });
+      print("Category deleted successfully");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Category deleted successfully")),
+      );
+    } else {
+      print("Failed to delete category");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to delete category")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -136,6 +182,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       margin: EdgeInsets.all(8.0),
                       child: ListTile(
                         title: Text(category.categoryName),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () => _showDeleteConfirmationDialog(category),
+                        ),
                         onTap: () => _showEditCategoryDialog(category),
                       ),
                     );

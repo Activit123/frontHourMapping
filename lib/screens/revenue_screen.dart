@@ -19,7 +19,11 @@ class _RevenueScreenState extends State<RevenueScreen> {
   String? selectedCurrency;
   List<Category> categories = [];
   Category? selectedCategory;
-  List<Revenue> revenues = [];
+  List<Revenue> allRevenues = [];
+  List<Revenue> paginatedRevenues = [];
+
+  int currentPage = 1;
+  final int itemsPerPage = 10;
 
   @override
   void initState() {
@@ -46,13 +50,25 @@ class _RevenueScreenState extends State<RevenueScreen> {
       final token = 'YOUR_JWT_TOKEN'; // Replace with actual JWT token
       final fetchedRevenues = await revenueService.getRevenues(token);
       setState(() {
-        revenues = fetchedRevenues;
+        allRevenues = fetchedRevenues;
+        _updatePaginatedRevenues();
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to load revenues")),
       );
     }
+  }
+
+  void _updatePaginatedRevenues() {
+    setState(() {
+      final startIndex = (currentPage - 1) * itemsPerPage;
+      final endIndex = startIndex + itemsPerPage;
+      paginatedRevenues = allRevenues.sublist(
+        startIndex,
+        endIndex > allRevenues.length ? allRevenues.length : endIndex,
+      );
+    });
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -170,6 +186,24 @@ class _RevenueScreenState extends State<RevenueScreen> {
     );
   }
 
+  void _goToPreviousPage() {
+    if (currentPage > 1) {
+      setState(() {
+        currentPage--;
+        _updatePaginatedRevenues();
+      });
+    }
+  }
+
+  void _goToNextPage() {
+    if ((currentPage * itemsPerPage) < allRevenues.length) {
+      setState(() {
+        currentPage++;
+        _updatePaginatedRevenues();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,9 +214,9 @@ class _RevenueScreenState extends State<RevenueScreen> {
         children: [
           Expanded(
             child: ListView.builder(
-              itemCount: revenues.length,
+              itemCount: paginatedRevenues.length,
               itemBuilder: (context, index) {
-                final revenue = revenues[index];
+                final revenue = paginatedRevenues[index];
                 return Card(
                   margin: EdgeInsets.all(8.0),
                   child: ListTile(
@@ -197,6 +231,20 @@ class _RevenueScreenState extends State<RevenueScreen> {
                 );
               },
             ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: _goToPreviousPage,
+                child: Text("Previous"),
+              ),
+              Text("Page $currentPage"),
+              TextButton(
+                onPressed: _goToNextPage,
+                child: Text("Next"),
+              ),
+            ],
           ),
           ElevatedButton(
             onPressed: _showCreateRevenueDialog,

@@ -71,4 +71,18 @@ class CategoryService {
 
     return response.statusCode == 200;
   }
+    Future<bool> deleteCategory(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = await _getToken();
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/categories/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+
+    return response.statusCode == 204;
+  }
 }

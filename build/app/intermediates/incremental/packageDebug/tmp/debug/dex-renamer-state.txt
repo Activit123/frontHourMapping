@@ -1,4 +1,4 @@
-#Tue Aug 06 10:44:09 AST 2024
+#Tue Aug 06 20:07:49 AST 2024
 base.0=E\:\\prPersonal\\aplicatiepontare\\pontare\\build\\app\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
 base.1=E\:\\prPersonal\\aplicatiepontare\\pontare\\build\\app\\intermediates\\dex\\debug\\mergeLibDexDebug\\0\\classes.dex
 base.2=E\:\\prPersonal\\aplicatiepontare\\pontare\\build\\app\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
